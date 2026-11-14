@@ -2483,7 +2483,7 @@ if(window.visualViewport)window.visualViewport.addEventListener('resize',fitApp)
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(fitApp,200);});
 
 /* ---------- Nube (Hoja de cálculo propia de Pinchín) ---------- */
-const CLOUD_URL='';   // ← PEGA AQUÍ la URL de la aplicación web de Apps Script (termina en /exec). Vacío = sin nube ni ranking
+const CLOUD_URL='https://script.google.com/macros/s/AKfycbwZ80C1dgm4ImIkMIsR0MGkWt14t5g5sgWkjrk1euIekwFD31P09eLp9oytd14qAyIc/exec';   // ← PEGA AQUÍ la URL de la aplicación web de Apps Script (termina en /exec). Vacío = sin nube ni ranking
 const CK='pinchin-cloud-v1';
 const cloudOn=!!CLOUD_URL;
 const LOGIN_FR=['🍎','🍌','🍇','🍊','🍓','🍉','🍐','🍍','🥝','🍋'];

@@ -38,6 +38,7 @@ Un IIFE. Se montó con un script a partir de trozos de Lumi; **desde ahora la fu
 - `?diag`: `showDiag()` comprueba manifest, iconos (tamaño real), sw, service worker, botón instalar, voces, almacenamiento y servidor.
 
 ## Servidor (`Codigo.gs`)
+URL de la aplicación web, ya puesta en `CLOUD_URL` de `index.html`: `https://script.google.com/macros/s/AKfycbwZ80C1dgm4ImIkMIsR0MGkWt14t5g5sgWkjrk1euIekwFD31P09eLp9oytd14qAyIc/exec`. `demo.html` no la usa (siempre local).
 Acciones POST (`text/plain`): `clase {f}` → nombres; `alta {f,n}`; `sync {f,c,n,data?,prog?,force?,sum?}`; `rank {f,c,n}`. Errores: `code`, `login`, `locked`, `busy`, `existe` (+`sug`), `nombre`, `lleno` (800 filas), `big`. Solo guarda si `prog ≥ guardado` o `force`. `LockService` solo en escrituras. Columnas en la GUIA.
 
 ## Pruebas hechas (Playwright, Pixel 5 y Chromebook 1366×768)

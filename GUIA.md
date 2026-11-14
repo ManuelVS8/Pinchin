@@ -15,7 +15,7 @@ Instalar: en Chrome aparece el botón «📲 Instalar» (en la pantalla de inici
 1. Crea una **hoja de cálculo nueva** en Google Drive (no uses la de Lumi).
 2. Extensiones → Apps Script → borra lo que haya, pega `Codigo.gs` y guarda.
 3. Implementar → Nueva implementación → tipo **Aplicación web** → Ejecutar como: **Yo** · Quién tiene acceso: **Cualquier usuario** → Implementar → autoriza los permisos → copia la URL que termina en `/exec`.
-4. En `index.html` busca la línea `const CLOUD_URL='';` y pega la URL entre las comillas. Sube `index.html` a GitHub.
+4. La URL de tu script **ya está puesta** en `index.html`. Solo si algún día haces una implementación nueva con otra URL, cámbiala en la línea `const CLOUD_URL='…';` y vuelve a subir `index.html`.
 5. Recarga la hoja → menú **🦔 Pinchín → Preparar hoja**. Se crean las pestañas **Clases** y **Alumnado**.
 6. En **Clases**, escribe una fila por clase: nombre de la clase, **una fruta distinta** (🍎 🍌 🍇 🍊 🍓 🍉 🍐 🍍 🥝 🍋) y `sí` en *activa*. Vienen dos de ejemplo (1º A 🍇, 1º B 🍎): cámbialas.
 7. Vuelve a abrir `?diag`: «Servidor (Apps Script)» debe salir ✅.
