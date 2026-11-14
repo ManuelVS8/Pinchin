@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>La casa de Pinchín</title>
-<meta name="app-version" content="1.0.8">
+<meta name="app-version" content="1.0.9">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#3b2a1e">
 <meta name="description" content="Cuida a Pinchín y aprende a sumar y restar jugando con frutas">
@@ -693,6 +693,9 @@ body{background:#3b2a1e}
 .conj.res.ok{border-style:solid}
 .fr.arr{visibility:hidden}
 .flyfr{position:fixed;z-index:70;pointer-events:none;line-height:1;transform:translate(-50%,-50%);filter:drop-shadow(0 4px 3px rgba(0,0,0,.25))}
+.letras{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.lt{width:52px;height:52px;border:3px solid #f0dcc2;background:#fff;border-radius:14px;font:700 26px Fredoka,sans-serif;cursor:pointer;color:var(--ink)}
+.lt.on{background:var(--accent);border-color:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -2049,9 +2052,9 @@ function openSettings(){
     <div class="inote" style="margin-top:6px">${VZ.sys?`Voz del aparato: ${esc(VZ.sys.name)}`:'Este aparato no tiene voz en español: se usa la voz en línea (hace falta internet).'} <button class="btn" id="sVozT" style="padding:4px 10px;font-size:14px">🔊 Probar</button></div>
     ${installEvt&&!isStandalone()?'<label class="lbl">Aplicación</label><button class="btn" id="sInstall" style="width:100%">📲 Instalar en este aparato</button>':''}
     ${!isStandalone()&&isIOS?`<label class="lbl">📲 Instalar en iPhone o iPad</label><div class="ibox"><div>Abre <b>${APP_URL}</b> en Safari, pulsa <b>Compartir</b> y luego <b>«Añadir a pantalla de inicio»</b>.</div></div>`:''}
-    ${cloudOn?(cloudLinked()?`<label class="lbl">☁️ Mi clase</label><div class="ibox"><div>Conectado como <b>${esc(CC.n)}</b> · ${esc(CC.c||'')} ${esc(CC.f||'')}</div><div class="inote" id="cSt">${cloudStatus()}</div>${cloudGod?'<div class="inote">🛠️ Modo profe activo</div>':''}<button class="btn" id="cSync" style="width:100%">🔄 Guardar ahora</button><button class="btn" id="cOut" style="width:100%">🚪 Salir</button></div>`:`<label class="lbl">☁️ Mi clase</label><button class="btn" id="cIn" style="width:100%">☁️ Entrar con mi clase</button><div class="inote">Para jugar en clase y en casa con la misma mascota y salir en el ranking.</div>`):''}
+    ${cloudOn?(cloudLinked()?`<label class="lbl">☁️ Mi cuenta</label><div class="ibox"><div>Conectado como <b>${esc(CC.n)}</b></div><div class="inote" id="cSt">${cloudStatus()}</div>${cloudGod?'<div class="inote">🛠️ Modo profe activo</div>':''}<button class="btn" id="cSync" style="width:100%">🔄 Guardar ahora</button><button class="btn" id="cOut" style="width:100%">🚪 Salir</button></div>`:`<label class="lbl">☁️ Mi cuenta</label><button class="btn" id="cIn" style="width:100%">☁️ Entrar con mi nombre</button><div class="inote">Para jugar en el cole y en casa con la misma mascota y salir en el ranking.</div>`):''}
     <label class="lbl">Actualizaciones</label><button class="btn" id="sUpd" style="width:100%">🔄 Buscar actualizaciones</button>
-    <p class="note">${cloudLinked()?'Tu partida se guarda en tu clase ☁️ y en este aparato.':'La partida se guarda solo en este aparato.'}</p>
+    <p class="note">${cloudLinked()?'Tu partida se guarda en la nube ☁️ y en este aparato.':'La partida se guarda solo en este aparato.'}</p>
     <div class="btns"><button class="btn danger" id="sReset">Reiniciar mascota</button><button class="btn primary" id="sSave">Guardar</button></div>`);
   $('#sName').value=S.name;
   $('#sUpd').onclick=()=>{closePanel();checkUpdate(true);};
@@ -2064,10 +2067,10 @@ function openSettings(){
   $('#sReset').onclick=confirmReset;
   const ci=$('#cIn');if(ci)ci.onclick=()=>openCloudLogin();
   const co=$('#cOut');if(co)co.onclick=confirmCloudOut;
-  const cs=$('#cSync');if(cs)cs.onclick=async()=>{cs.disabled=true;$('#cSt').textContent='⏳ Guardando…';cloudSig=null;const r=await cloudSync({login:true,ms:12000});if(r&&r.ok&&r.adopted){closePanel();toast('☁️ Progreso cargado de tu clase');}else{$('#cSt').textContent=cloudStatus();cs.disabled=false;}};
+  const cs=$('#cSync');if(cs)cs.onclick=async()=>{cs.disabled=true;$('#cSt').textContent='⏳ Guardando…';cloudSig=null;const r=await cloudSync({login:true,ms:12000});if(r&&r.ok&&r.adopted){closePanel();toast('☁️ Progreso cargado de la nube');}else{$('#cSt').textContent=cloudStatus();cs.disabled=false;}};
 }
 function confirmReset(){
-  openPanel(`<div class="ptitle">¿Reiniciar la mascota?</div><p style="text-align:center">Se borrará a <b>${esc(S.name)}</b> con sus monedas, medallas y regalos${cloudLinked()?' (también de tu clase ☁️)':''}. No se puede deshacer.</p>
+  openPanel(`<div class="ptitle">¿Reiniciar la mascota?</div><p style="text-align:center">Se borrará a <b>${esc(S.name)}</b> con sus monedas, medallas y regalos${cloudLinked()?' (también de la nube ☁️)':''}. No se puede deshacer.</p>
     <div class="btns"><button class="btn" id="rNo">Cancelar</button><button class="btn danger" id="rYes">Sí, borrar</button></div>`,'',openSettings);
   $('#rNo').onclick=openSettings;
   $('#rYes').onclick=()=>{wipeLocal();if(cloudLinked()){save();cloudSync({force:true,login:true});}};
@@ -2375,14 +2378,14 @@ function startBasket(mode){
 function openLiga(tab0,mode0){
   let tab=tab0||'fut',mode=mode0||(S.fMode==='n'?'n':'m'),per='sem',data=null;
   const medal=['🥇','🥈','🥉'];
-  const listHTML=arr=>arr&&arr.length?`<ol class="lglist">${arr.map((p,i)=>`<li class="${p.me?'me':''}"><span class="lgp">${medal[i]||(i+1)+'.'}</span><span class="lgn">${esc(p.n)}${p.g?` <small>· ${esc(p.g)}</small>`:''}${p.me?' (tú)':''}</span><span class="lgx">${fmtT(Math.round(p.p*100))}</span></li>`).join('')}</ol>`:'<div class="sub" style="text-align:center">Todavía no hay nadie. ¡Sé el primero! 🚀</div>';
+  const listHTML=arr=>arr&&arr.length?`<ol class="lglist">${arr.map((p,i)=>`<li class="${p.me?'me':''}"><span class="lgp">${medal[i]||(i+1)+'.'}</span><span class="lgn">${esc(p.n)}${p.me?' (tú)':''}</span><span class="lgx">${fmtT(Math.round(p.p*100))}</span></li>`).join('')}</ol>`:'<div class="sub" style="text-align:center">Todavía no hay nadie. ¡Sé el primero! 🚀</div>';
   const draw=()=>{
     const box=$('#lgBody');if(!box)return;
     $$('#lgTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
     const L=((((data.rank||{})[tab]||{})[mode]||{})[per])||{};
     box.innerHTML=`<div class="seg" id="lgMode"><button data-m="m" class="${mode==='m'?'on':''}">🍎2 Frutas y números</button><button data-m="n" class="${mode==='n'?'on':''}">123 Números</button></div>
       <div class="seg" id="lgPer"><button data-p="sem" class="${per==='sem'?'on':''}">📅 Esta semana</button><button data-p="tot" class="${per==='tot'?'on':''}">🏆 Siempre</button></div>
-      <div class="sub">${tab==='fut'?`⚽ Menos tiempo en hacer ${FUT_GOAL} paradas`:`🏀 Menos tiempo en meter ${BK_GOAL} canastas`}. Todas las clases.</div>
+      <div class="sub">${tab==='fut'?`⚽ Menos tiempo en hacer ${FUT_GOAL} paradas`:`🏀 Menos tiempo en meter ${BK_GOAL} canastas`}.</div>
       ${listHTML(L.top)}${L.pos&&L.pos>(L.top||[]).length?`<div class="lgme">Tu puesto: <b>${L.pos}º</b> · ${fmtT(Math.round(L.myp*100))}</div>`:''}`;
     $$('#lgMode button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;sfx('click');draw();});
     $$('#lgPer button').forEach(b=>b.onclick=()=>{per=b.dataset.p;sfx('click');draw();});
@@ -2520,7 +2523,7 @@ function netMsg(r){
   if(r&&r.err==='server')return'⚠️ Error en la hoja: '+String(r.msg||'').slice(0,90);
   if(!navigator.onLine)return'📡 No hay internet en este aparato';
   if(cloudNetErr==='lento')return'🐢 La hoja tarda mucho en responder. Inténtalo otra vez';
-  return'⚠️ No se puede conectar con la hoja de clase. Avisa a tu profe';
+  return'⚠️ No se puede conectar con la hoja. Avisa a tu profe';
 }
 const cloudAllowed=()=>!overlayOpen()&&!classMode&&!game&&!busy;
 function cloudAdopt(ro){
@@ -2575,7 +2578,7 @@ async function cloudSync(o={}){
       const pr=await cloudCallR(Object.assign({a:'sync'},auth()),{ms:o.ms});
       if(!pr){cloudErr=true;return null;}
       cloudErr=false;
-      if(!pr.ok){if(pr.err==='login'||pr.err==='locked'){cloudErr=pr.err;if(!o.login&&!cloudWarned){cloudWarned=true;toast('☁️ No se pudo entrar en tu clase. Mira en Ajustes');}}return pr;}
+      if(!pr.ok){if(pr.err==='login'||pr.err==='locked'){cloudErr=pr.err;if(!o.login&&!cloudWarned){cloudWarned=true;toast('☁️ No se pudo entrar en tu cuenta. Mira en Ajustes');}}return pr;}
       if(pr.name&&CC.n!==pr.name){CC.n=pr.name;cloudStore();}
       cloudGod=pr.mode==='todo';godShow();
       if(pr.data){let ro=null;try{ro=JSON.parse(pr.data);}catch(e){}
@@ -2591,7 +2594,7 @@ async function cloudSync(o={}){
     r=await cloudCallR(body,{keep:o.keep,ms:o.ms});
     if(!r){cloudErr=true;return null;}
     cloudErr=false;
-    if(!r.ok){if(r.err==='login'||r.err==='locked'){cloudErr=r.err;if(!o.login&&!cloudWarned){cloudWarned=true;toast('☁️ No se pudo entrar en tu clase. Mira en Ajustes');}}return r;}
+    if(!r.ok){if(r.err==='login'||r.err==='locked'){cloudErr=r.err;if(!o.login&&!cloudWarned){cloudWarned=true;toast('☁️ No se pudo entrar en tu cuenta. Mira en Ajustes');}}return r;}
     if(r.name&&CC.n!==r.name){CC.n=r.name;cloudStore();}
     if(r.saved){cloudSig=sig;cloudLast=Date.now();cloudPending=false;}
     else if(r.data){
@@ -2618,13 +2621,13 @@ async function cloudLogin(f,c,n){
 }
 async function rankFetch(){if(!cloudLinked())return null;return await cloudCallR(Object.assign({a:'rank'},auth()),{ms:15000});}
 function cloudStatus(){
-  if(cloudErr==='login')return '⚠️ No encuentro tu nombre en la clase. Sal y vuelve a entrar.';
+  if(cloudErr==='login')return '⚠️ No encuentro tu nombre. Sal y vuelve a entrar.';
   if(cloudErr==='locked')return '🔒 Demasiados intentos. Espera unos minutos.';
   if(cloudErr)return navigator.onLine?'⚠️ No se puede conectar con la hoja. Se guardará cuando se pueda.':'📡 Sin internet. Se guardará cuando vuelva.';
   if(cloudLast){const d=new Date(cloudLast);return `✅ Guardado a las ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
   return 'Se guarda solo mientras juegas.';
 }
-/* ---------- Entrar: «Elige la combinación» (tres frutas iguales de la fruta de la clase) ---------- */
+/* ---------- Entrar: «Elige la combinación» (tres veces la fruta secreta, la misma para todos) ---------- */
 const LOCK_K='pinchin-lock';
 const lockLeft=()=>{try{const o=JSON.parse(localStorage.getItem(LOCK_K)||'{}');return Math.max(0,Math.ceil(((o.until||0)-Date.now())/1000));}catch(e){return 0;}};
 function lockFail(){try{const o=JSON.parse(localStorage.getItem(LOCK_K)||'{}');o.n=(o.n||0)+1;if(o.n>=5){o.n=0;o.until=Date.now()+60000;}localStorage.setItem(LOCK_K,JSON.stringify(o));}catch(e){}}
@@ -2659,12 +2662,21 @@ function openCloudLogin(done){
 }
 function openNames(f,c,nombres,done){
   const back=()=>openCloudLogin(done);
-  openPanel(`<div class="ghead"><b>👋 ¿Quién eres?</b><span>${f} ${esc(c)}</span><button class="x" data-x>✕</button></div>
-    <div class="nlist">${nombres.map((n,i)=>`<button class="nb2" data-i="${i}">${esc(n)}</button>`).join('')}<button class="nb2 new" id="nNew">➕ Soy nuevo</button></div>
+  const ini=n=>String(n).trim().charAt(0).toLocaleUpperCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const letras=[...new Set(nombres.map(ini))].sort((x,y)=>x.localeCompare(y,'es'));
+  const pocos=nombres.length<=24;let L=pocos?'':null;
+  openPanel(`<div class="ghead"><b>👋 ¿Quién eres?</b><button class="x" data-x>✕</button></div>
+    ${pocos?'':`<div class="sub" style="text-align:center">Toca la primera letra de tu nombre</div><div class="letras">${letras.map(l=>`<button class="lt" data-l="${esc(l)}">${esc(l)}</button>`).join('')}</div>`}
+    <div class="nlist" id="nList"></div><div class="btns"><button class="nb2 new" id="nNew">➕ Soy nuevo</button></div>
     <div class="gmsg" id="nMsg"></div>`,'',back);
-  hablar('¿Quién eres? Toca tu nombre.');
+  const lista=()=>{const box=$('#nList');if(!box)return;
+    box.innerHTML=L===null?'':nombres.map((n,i)=>[n,i]).filter(([n])=>!L||ini(n)===L).map(([n,i])=>`<button class="nb2" data-i="${i}">${esc(n)}</button>`).join('');
+    $$('#nList .nb2[data-i]').forEach(b=>b.onclick=()=>enterAs(f,c,nombres[+b.dataset.i],done,$('#nMsg')));
+    $$('#panel .lt').forEach(b=>b.classList.toggle('on',b.dataset.l===L));};
+  lista();
+  $$('#panel .lt').forEach(b=>b.onclick=()=>{L=b.dataset.l;sfx('click');lista();});
+  hablar(pocos?'¿Quién eres? Toca tu nombre.':'Toca la primera letra de tu nombre.');
   $$('#panel [data-x]').forEach(b=>b.onclick=()=>{closePanel();if(done)done();});
-  $$('#panel .nb2[data-i]').forEach(b=>b.onclick=()=>enterAs(f,c,nombres[+b.dataset.i],done,$('#nMsg')));
   $('#nNew').onclick=()=>openNewName(f,c,nombres,done);
 }
 async function enterAs(f,c,n,done,msgEl){
@@ -2674,8 +2686,8 @@ async function enterAs(f,c,n,done,msgEl){
   else if(msgEl)msgEl.textContent=r&&r.err==='locked'?'🔒 Demasiados intentos. Espera unos minutos':r&&r.err==='login'?'❌ No se pudo entrar. Vuelve a elegir la combinación':r&&r.err==='server'?netMsg(r):'📡 No hay conexión. Inténtalo de nuevo';
 }
 function openNewName(f,c,nombres,done){
-  openPanel(`<div class="ghead"><b>➕ Nuevo en ${f} ${esc(c)}</b><button class="x" id="nwX">✕</button></div>
-    <p class="note" style="text-align:center;font-size:16px">Escribe solo el <b>nombre</b> (sin apellidos). Si hay dos iguales, añade la inicial: «Ana M.»</p>
+  openPanel(`<div class="ghead"><b>➕ Soy nuevo</b><button class="x" id="nwX">✕</button></div>
+    <p class="note" style="text-align:center;font-size:16px">Escribe solo el <b>nombre</b> (sin apellidos). Si ya hay uno igual, añade la inicial del apellido: «Ana M.»</p>
     <label class="lbl">Nombre</label><input id="nwN" maxlength="16" autocomplete="off" autocapitalize="words" spellcheck="false">
     <div class="sugs" id="nwSug"></div><div class="gmsg" id="nwMsg"></div>
     <div class="btns"><button class="btn primary" id="nwGo" style="font-size:22px">✔ Guardar</button></div>`,'',()=>openNames(f,c,nombres,done));
@@ -2699,7 +2711,7 @@ function openNewName(f,c,nombres,done){
   setTimeout(()=>{const i=$('#nwN');if(i)i.focus();},150);
 }
 function confirmCloudOut(){
-  openPanel(`<div class="ptitle">¿Salir de tu clase?</div><p style="text-align:center">Se guarda tu progreso y la mascota se quita de <b>este aparato</b>. Al volver a entrar, la recuperas.</p>
+  openPanel(`<div class="ptitle">¿Salir de tu cuenta?</div><p style="text-align:center">Se guarda tu progreso y la mascota se quita de <b>este aparato</b>. Al volver a entrar, la recuperas.</p>
     <div class="btns"><button class="btn" id="oNo">Cancelar</button><button class="btn danger" id="oYes">Sí, salir</button></div>`,'',openSettings);
   $('#oNo').onclick=openSettings;
   $('#oYes').onclick=async()=>{
@@ -2707,7 +2719,7 @@ function confirmCloudOut(){
     const r=await cloudSync({login:true,ms:12000});
     if(!r||!r.ok){toast('📡 Sin conexión: no se puede salir sin guardar');openSettings();return;}
     CC=null;cloudGod=false;try{localStorage.removeItem(CK);}catch(e){}
-    wipeLocal();toast('Has salido de tu clase');
+    wipeLocal();toast('Has salido de tu cuenta');
   };
 }
 function wipeLocal(){try{localStorage.removeItem(KEY);}catch(e){}S=defState();ensureNew();cloudSig=null;$('#bubbles').innerHTML='';applyLook();applyGrow();goRoom('cocina',true);updateUI();clearTempFace();welcome();}
@@ -2754,9 +2766,8 @@ async function showDiag(){
       if(!j)row('Servidor: abrir (GET)','❌ no responde con datos. Abre la URL /exec en el navegador y mira qué sale','ko');
       else{row('Servidor: abrir (GET)',j.ok?'✅ '+esc(j.msg||'activo'):'❌ '+esc(j.msg||'error'),j.ok?'ok':'ko');
         if(j.hoja)row('Hoja conectada',esc(j.hoja)+' · '+(j.alumnos||0)+' alumnos');
-        if('clases' in j)row('Clases',j.clases.length?esc(j.clases.join(' · ')):'❌ ninguna',j.clases.length?'ok':'ko');
         if(j.aviso)row('Aviso',esc(j.aviso),'wa');
-        if(!j.hoja&&j.ok)row('Versión del script','⚠️ es el código antiguo: pega el Codigo.gs nuevo y publica una «Nueva versión»','wa');}
+        if(j.ok&&!j.sinClases)row('Código del script','⚠️ es el antiguo (con clases): pega el Codigo.gs nuevo y publica una «Nueva versión»','wa');}
     }catch(e){row('Servidor: abrir (GET)','❌ bloqueado ('+esc(e.message)+'). Revisa en Implementar → Administrar implementaciones: «Ejecutar como: Yo» y «Quién tiene acceso: Cualquier usuario»','ko');}
     try{const r=await fetch(CLOUD_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({a:'clase',f:'🧪',d:'diag'}),cache:'no-store'});const t=await r.text();let j=null;try{j=JSON.parse(t);}catch(e){}
       if(j&&j.err==='server')row('Servidor: entrar (POST)','❌ error en el script: '+esc(j.msg),'ko');
@@ -2855,7 +2866,7 @@ function showInstallBar(){
 }
 function renderSplashBtns(){
   const b=$('#spBtns');if(!b||!splashReady)return;
-  b.innerHTML=`<button class="spBtn primary" id="spGo">▶ ¡A jugar!</button>${cloudOn&&!cloudLinked()?'<button class="spBtn link" id="spCloud">☁️ Entrar con mi clase</button>':''}${installEvt&&!isStandalone()?'<button class="spBtn link" id="spInstall">📲 Instalar la app</button>':''}`;
+  b.innerHTML=`<button class="spBtn primary" id="spGo">▶ ¡A jugar!</button>${cloudOn&&!cloudLinked()?'<button class="spBtn link" id="spCloud">☁️ Entrar con mi nombre</button>':''}${installEvt&&!isStandalone()?'<button class="spBtn link" id="spInstall">📲 Instalar la app</button>':''}`;
   const cb=$('#spCloud');if(cb)cb.onclick=()=>{closeSplash(true);openCloudLogin(()=>startApp());};
   $('#spGo').onclick=()=>{ensureAudio();fartDecode();hablar(firstRun?'¡Hola!':'¡Hola de nuevo!');closeSplash();};
   const ib=$('#spInstall');if(ib)ib.onclick=async()=>{closeSplash(true);await doInstall();startApp();};
