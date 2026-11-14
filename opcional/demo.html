@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Pinchín · DEMO</title>
-<meta name="app-version" content="1.0.6">
+<meta name="app-version" content="1.0.7">
 <meta name="theme-color" content="#3b2a1e">
 <meta name="description" content="Cuida a Pinchín y aprende a sumar y restar jugando con frutas">
 <link rel="icon" type="image/png" href="icon-192.png">
@@ -2504,10 +2504,22 @@ async function cloudCall(body,keep,ms){
   finally{clearTimeout(t);}
 }
 // si el servidor está ocupado (25 niños a la vez) o falla la red, reintenta con una espera al azar sin que el niño lo note
+// Si falla la red, se reintenta 1 vez; si el servidor está ocupado, hasta 4 (con espera al azar)
+let cloudNetErr='';
 async function cloudCallR(body,o={}){
-  for(let i=0;i<4;i++){let r=null;try{r=await cloudCall(Object.assign({},body),o.keep,o.ms);}catch(e){r=null;}
-    if(r&&r.err!=='busy')return r;if(o.keep||o.once)return r;await new Promise(z=>setTimeout(z,700+Math.random()*2200*(i+1)));}
+  let fails=0;
+  for(let i=0;i<4;i++){let r=null;
+    try{r=await cloudCall(Object.assign({},body),o.keep,o.ms);cloudNetErr='';}
+    catch(e){r=null;fails++;cloudNetErr=e&&e.name==='AbortError'?'lento':'red';}
+    if(r&&r.err!=='busy')return r;if(o.keep||o.once||fails>=2)return r;await new Promise(z=>setTimeout(z,600+Math.random()*1500*(i+1)));}
   return null;
+}
+// mensaje claro cuando no se puede hablar con la hoja
+function netMsg(r){
+  if(r&&r.err==='server')return'⚠️ Error en la hoja: '+String(r.msg||'').slice(0,90);
+  if(!navigator.onLine)return'📡 No hay internet en este aparato';
+  if(cloudNetErr==='lento')return'🐢 La hoja tarda mucho en responder. Inténtalo otra vez';
+  return'⚠️ No se puede conectar con la hoja de clase. Avisa a tu profe';
 }
 const cloudAllowed=()=>!overlayOpen()&&!classMode&&!game&&!busy;
 function cloudAdopt(ro){
@@ -2607,7 +2619,7 @@ async function rankFetch(){if(!cloudLinked())return null;return await cloudCallR
 function cloudStatus(){
   if(cloudErr==='login')return '⚠️ No encuentro tu nombre en la clase. Sal y vuelve a entrar.';
   if(cloudErr==='locked')return '🔒 Demasiados intentos. Espera unos minutos.';
-  if(cloudErr)return '📡 Sin conexión. Se guardará cuando vuelva.';
+  if(cloudErr)return navigator.onLine?'⚠️ No se puede conectar con la hoja. Se guardará cuando se pueda.':'📡 Sin internet. Se guardará cuando vuelva.';
   if(cloudLast){const d=new Date(cloudLast);return `✅ Guardado a las ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
   return 'Se guarda solo mientras juegas.';
 }
@@ -2635,7 +2647,7 @@ function openCloudLogin(done){
     if(sel.length<3){hablar('Elige tres frutas.');sfx('bad');return;}
     if(!(sel[0]===sel[1]&&sel[1]===sel[2])){fail();return;}
     busyL=true;msg('⏳');const r=await cloudCallR({a:'clase',f:sel[0]},{ms:12000});busyL=false;
-    if(!r){msg('📡 No hay conexión. Inténtalo otra vez.');return;}
+    if(!r||r.err==='server'){msg(netMsg(r));return;}
     if(!r.ok){if(r.err==='locked'){msg('🔒 Demasiados intentos. Espera unos minutos.');sfx('bad');return;}fail();return;}
     lockOk();sfx('ok');openNames(sel[0],r.c,r.nombres||[],done);
   };
@@ -2654,7 +2666,7 @@ async function enterAs(f,c,n,done,msgEl){
   if(msgEl)msgEl.textContent='⏳ Entrando…';
   const r=await cloudLogin(f,c,n);
   if(r&&r.ok){sfx('ok');closePanel();const nm=CC.n;toast(`☁️ ¡Hola, ${nm}! ${r.adopted?'Tu mascota está cargada':'Se guardará tu progreso'}`);hablar('¡Hola, '+nm+'!');if(done)done();else{updateUI();if(!S.name)setTimeout(welcome,300);}ligaUI();}
-  else if(msgEl)msgEl.textContent=r&&r.err==='locked'?'🔒 Demasiados intentos. Espera unos minutos':r&&r.err==='login'?'❌ No se pudo entrar. Vuelve a elegir la combinación':'📡 No hay conexión. Inténtalo de nuevo';
+  else if(msgEl)msgEl.textContent=r&&r.err==='locked'?'🔒 Demasiados intentos. Espera unos minutos':r&&r.err==='login'?'❌ No se pudo entrar. Vuelve a elegir la combinación':r&&r.err==='server'?netMsg(r):'📡 No hay conexión. Inténtalo de nuevo';
 }
 function openNewName(f,c,nombres,done){
   openPanel(`<div class="ghead"><b>➕ Nuevo en ${f} ${esc(c)}</b><button class="x" id="nwX">✕</button></div>
@@ -2669,7 +2681,7 @@ function openNewName(f,c,nombres,done){
     if(name.length<2||!/^\p{L}/u.test(name)){$('#nwMsg').textContent='Escribe el nombre ✏️';sfx('bad');return;}
     $('#nwGo').disabled=true;$('#nwMsg').textContent='⏳';
     const r=await cloudCallR({a:'alta',f,n:name},{ms:12000});$('#nwGo').disabled=false;
-    if(!r){$('#nwMsg').textContent='📡 No hay conexión. Inténtalo otra vez';return;}
+    if(!r||r.err==='server'){$('#nwMsg').textContent=netMsg(r);return;}
     if(!r.ok){
       if(r.err==='existe'){$('#nwMsg').textContent='Ese nombre ya está. Elige uno de estos 👇';sfx('bad');
         $('#nwSug').innerHTML=(r.sug||[]).map(s=>`<button class="btn" data-s="${esc(s)}">${esc(s)}</button>`).join('');
@@ -2731,7 +2743,22 @@ async function showDiag(){
   row('Botón instalar de Chrome',bipSeen||installEvt?'✅ disponible':'⚠️ no ofrecido (normal si ya está instalada o no es Chrome)',bipSeen||installEvt?'ok':'wa');
   pickVoice();row('Voces en español del aparato',VZ.n?`✅ ${VZ.n} (${esc(VZ.sys?VZ.sys.name:'')})`:'⚠️ ninguna: se usará la voz en línea',VZ.n?'ok':'wa');
   row('Guardado local',(()=>{try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return'✅ funciona';}catch(e){return'❌ bloqueado';}})());
-  if(cloudOn){try{const r=await fetch(CLOUD_URL);const j=await r.json();row('Servidor (Apps Script)',j&&j.ok?'✅ '+esc(j.msg||'activo'):'❌ responde mal','ok');}catch(e){row('Servidor (Apps Script)','❌ no responde: revisa la implementación ('+esc(e.message)+')','ko');}}
+  if(cloudOn){
+    row('URL del script',esc(CLOUD_URL.replace(/^(.{48}).*(.{10})$/,'$1…$2')));
+    try{const r=await fetch(CLOUD_URL,{cache:'no-store'});const t=await r.text();let j=null;try{j=JSON.parse(t);}catch(e){}
+      if(!j)row('Servidor: abrir (GET)','❌ no responde con datos. Abre la URL /exec en el navegador y mira qué sale','ko');
+      else{row('Servidor: abrir (GET)',j.ok?'✅ '+esc(j.msg||'activo'):'❌ '+esc(j.msg||'error'),j.ok?'ok':'ko');
+        if(j.hoja)row('Hoja conectada',esc(j.hoja)+' · '+(j.alumnos||0)+' alumnos');
+        if('clases' in j)row('Clases',j.clases.length?esc(j.clases.join(' · ')):'❌ ninguna',j.clases.length?'ok':'ko');
+        if(j.aviso)row('Aviso',esc(j.aviso),'wa');
+        if(!j.hoja&&j.ok)row('Versión del script','⚠️ es el código antiguo: pega el Codigo.gs nuevo y publica una «Nueva versión»','wa');}
+    }catch(e){row('Servidor: abrir (GET)','❌ bloqueado ('+esc(e.message)+'). Revisa en Implementar → Administrar implementaciones: «Ejecutar como: Yo» y «Quién tiene acceso: Cualquier usuario»','ko');}
+    try{const r=await fetch(CLOUD_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({a:'clase',f:'🧪',d:'diag'}),cache:'no-store'});const t=await r.text();let j=null;try{j=JSON.parse(t);}catch(e){}
+      if(j&&j.err==='server')row('Servidor: entrar (POST)','❌ error en el script: '+esc(j.msg),'ko');
+      else if(j)row('Servidor: entrar (POST)','✅ responde ('+esc(j.err||'ok')+')','ok');
+      else row('Servidor: entrar (POST)','❌ no responde con datos','ko');
+    }catch(e){row('Servidor: entrar (POST)','❌ bloqueado ('+esc(e.message)+')','ko');}
+  }
   else row('Servidor (Apps Script)','⚠️ sin configurar (CLOUD_URL vacío): solo juego local','wa');
   paint();
 }

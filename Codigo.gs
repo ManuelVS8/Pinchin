@@ -24,7 +24,17 @@ function fr_(s) { return String(s || '').replace(/️/g, '').trim(); }
 function norm_(s) { return String(s || '').trim().replace(/\s+/g, ' ').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 function seg_(cs) { cs = num_(cs); return cs > 0 ? Math.round(cs) / 100 : ''; }
 
-function doGet() { return out_({ ok: true, msg: 'La casa de Pinchín · servicio activo' }); }
+// Autocomprobación: abre la URL /exec en el navegador y te dice si todo está bien
+function doGet() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) return out_({ ok: false, msg: 'El script no está dentro de la hoja: créalo desde la hoja con Extensiones → Apps Script' });
+    const c = ss.getSheetByName(CLASES), a = ss.getSheetByName(HOJA);
+    const clases = c && c.getLastRow() > 1 ? c.getRange(2, 1, c.getLastRow() - 1, 3).getValues().filter(r => String(r[0]).trim()).map(r => String(r[0]).trim() + ' ' + fr_(r[1]) + (norm_(r[2]) === 'no' ? ' (cerrada)' : '')) : [];
+    return out_({ ok: true, msg: 'La casa de Pinchín · servicio activo', hoja: ss.getName(), clases: clases, alumnos: a ? Math.max(0, a.getLastRow() - 1) : 0,
+      aviso: !c ? 'Falta la pestaña Clases: menú 🦔 Pinchín → Preparar hoja' : clases.length ? '' : 'La pestaña Clases está vacía' });
+  } catch (x) { return out_({ ok: false, msg: 'Error: ' + x.message }); }
+}
 
 // Clase a la que corresponde una fruta (solo clases activas)
 function clase_(f) {
@@ -48,7 +58,11 @@ function buscar_(v, c, n) {
   return -1;
 }
 
+// Cualquier fallo se devuelve como JSON (si no, el navegador solo ve «sin conexión»)
 function doPost(e) {
+  try { return doPost_(e); } catch (x) { return out_({ ok: false, err: 'server', msg: String(x && x.message || x) }); }
+}
+function doPost_(e) {
   let b;
   try { b = JSON.parse(e.postData.contents); } catch (x) { return out_({ ok: false, err: 'bad' }); }
   const a = b && b.a;

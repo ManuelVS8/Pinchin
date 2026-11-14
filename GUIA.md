@@ -20,6 +20,14 @@ Instalar: en Chrome aparece el botón «📲 Instalar» (en la pantalla de inici
 6. En **Clases**, escribe una fila por clase: nombre de la clase, **una fruta distinta** (🍎 🍌 🍇 🍊 🍓 🍉 🍐 🍍 🥝 🍋) y `sí` en *activa*. Vienen dos de ejemplo (1º A 🍇, 1º B 🍎): cámbialas.
 7. Vuelve a abrir `?diag`: «Servidor (Apps Script)» debe salir ✅.
 
+### Si al entrar dice que no se puede conectar con la hoja
+1. Abre la URL del script (la que termina en `/exec`) en una **ventana de incógnito**. Debe salir un texto que empiece por `{"ok":true,"msg":"La casa de Pinchín · servicio activo","hoja":…,"clases":[…]}`.
+   - Si te pide iniciar sesión o sale «No tienes permiso»: Implementar → Administrar implementaciones → ✏️ → **Quién tiene acceso: Cualquier usuario** (no «cualquier usuario con cuenta de Google»).
+   - Si sale «No se ha encontrado la función doGet» o un error: el código no está publicado. Pega el `Codigo.gs`, guarda y publica una **Nueva versión** (paso de abajo).
+   - Si sale `"ok":false` con un mensaje, ese mensaje dice qué falta (por ejemplo, que el script no está creado desde la hoja, o que falta la pestaña Clases).
+   - Si sale `{"ok":true,"msg":…}` **sin** `"hoja"`, el script publicado es el antiguo: publica una Nueva versión.
+2. `…/Pinchin/?diag` hace las mismas comprobaciones desde la app (abrir y entrar).
+
 Si cambias `Codigo.gs` más adelante: Implementar → **Administrar implementaciones** → ✏️ → Versión: **Nueva versión** → Implementar (la URL no cambia).
 
 ### Cómo entra un niño
