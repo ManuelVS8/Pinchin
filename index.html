@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>La casa de Pinchín</title>
-<meta name="app-version" content="1.0.7">
+<meta name="app-version" content="1.0.8">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#3b2a1e">
 <meta name="description" content="Cuida a Pinchín y aprende a sumar y restar jugando con frutas">
@@ -2631,18 +2631,22 @@ function lockFail(){try{const o=JSON.parse(localStorage.getItem(LOCK_K)||'{}');o
 function lockOk(){try{localStorage.removeItem(LOCK_K);}catch(e){}}
 function openCloudLogin(done){
   const fin=()=>{closePanel();if(done)done();};
-  let sel=[],busyL=false;const order=shuffle(LOGIN_FR.slice());
+  let sel=[],busyL=false;
   openPanel(`<div class="ghead"><b>Elige la combinación</b><button class="spk2" id="lSay">🔊</button><button class="x" id="lX">✕</button></div>
-    <div class="lslots" id="lSlots"></div><div class="lgrid">${order.map(f=>`<button class="lf" data-f="${f}">${f}</button>`).join('')}</div>
+    <div class="lslots" id="lSlots"></div><div class="lgrid" id="lGrid"></div>
     <div class="lbtns"><button class="btn" id="lDel" aria-label="Borrar">❌</button><button class="btn primary" id="lOk" aria-label="Aceptar">✔</button></div>
     <div class="gmsg" id="lMsg"></div>`,'',fin);
   const slots=()=>{$('#lSlots').innerHTML=[0,1,2].map(i=>`<div>${sel[i]||''}</div>`).join('');};slots();
   const say=()=>hablar('Elige la combinación.');say();$('#lSay').onclick=()=>hablarYa(say);$('#lX').onclick=fin;
   const msg=t=>{const m=$('#lMsg');if(m)m.textContent=t;};
   const wl=lockLeft();if(wl)msg(`🔒 Espera ${wl} s`);
-  $$('#panel .lf').forEach(b=>b.onclick=()=>{if(sel.length>=3)return;sel.push(b.dataset.f);sfx('pop');slots();});
+  // las frutas cambian de sitio cada vez que se abre y tras cada intento
+  const mix=()=>{const g=$('#lGrid');if(!g)return;let o;const prev=g.dataset.o||'';do{o=shuffle(LOGIN_FR.slice());}while(o.join('')===prev);g.dataset.o=o.join('');
+    g.innerHTML=o.map(f=>`<button class="lf" data-f="${f}">${f}</button>`).join('');
+    $$('#lGrid .lf').forEach(b=>b.onclick=()=>{if(sel.length>=3)return;sel.push(b.dataset.f);sfx('pop');slots();});};
+  mix();
   $('#lDel').onclick=()=>{sel=[];sfx('click');slots();msg('');};
-  const fail=()=>{lockFail();sfx('bad');const s=$('#lSlots');s.classList.remove('shake');void s.offsetWidth;s.classList.add('shake');hablar('Prueba otra vez.');sel=[];setTimeout(slots,500);const w=lockLeft();msg(w?`🔒 Espera ${w} s`:'');};
+  const fail=()=>{lockFail();sfx('bad');const s=$('#lSlots');s.classList.remove('shake');void s.offsetWidth;s.classList.add('shake');hablar('Prueba otra vez.');sel=[];setTimeout(()=>{slots();mix();},500);const w=lockLeft();msg(w?`🔒 Espera ${w} s`:'');};
   $('#lOk').onclick=async()=>{
     if(busyL)return;const w=lockLeft();if(w){msg(`🔒 Espera ${w} s`);sfx('bad');return;}
     if(sel.length<3){hablar('Elige tres frutas.');sfx('bad');return;}
@@ -2731,7 +2735,7 @@ async function showDiag(){
     $('#dgR').onclick=()=>location.reload();$('#dgA').onclick=()=>{location.href=location.pathname;};};
   const alertBox=t=>{const p=document.createElement('p');p.className='ko';p.textContent=t;d.appendChild(p);};
   const chk=async(f,label)=>{try{const r=await fetch(f+'?nocache='+Date.now(),{cache:'no-store'});const b=await r.blob();row(label||f,r.ok?`✅ ${r.status} · ${Math.round(b.size/1024*10)/10} KB · ${r.headers.get('content-type')||''}`:`❌ ${r.status}`,r.ok?'ok':'ko');return r.ok?b:null;}catch(e){row(label||f,'❌ '+e.message,'ko');return null;}};
-  row('Versión',APP_VERSION);row('Dirección',esc(location.href));
+  row('Dirección',esc(location.href));
   row('Conexión segura (https)',window.isSecureContext?'✅ sí':'❌ no',window.isSecureContext?'ok':'ko');
   paint();
   const mb=await chk('manifest.json');
